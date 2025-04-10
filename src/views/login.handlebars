@@ -1,0 +1,41 @@
+{{!< default}}
+<div class="container">
+  <h2>Iniciar Sesión</h2>
+  <form id="loginForm">
+    <input type="email" id="loginEmail" name="email" placeholder="Email" required />
+    <input type="password" id="loginPassword" name="password" placeholder="Contraseña" required />
+    <button type="submit">Iniciar sesión</button>
+    <p>¿No tienes cuenta? <a href="/register">Regístrate</a></p>
+  </form>
+</div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      email: document.getElementById('loginEmail').value,
+      password: document.getElementById('loginPassword').value
+    };
+
+    try {
+      const response = await fetch('/api/sessions/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+
+      const result = await response.json();
+      alert(result.message);
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error en login:', error.message);
+      alert(`Error: ${error.message}`);
+    }
+  });
+</script>

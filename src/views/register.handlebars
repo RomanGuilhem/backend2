@@ -1,0 +1,40 @@
+{{!< default}}
+<div class="container">
+  <h2>Registrarse</h2>
+  <form id="registerForm">
+    <input type="text" id="registerFirstName" name="first_name" placeholder="Nombre" required />
+    <input type="email" id="registerEmail" name="email" placeholder="Email" required />
+    <input type="password" id="registerPassword" name="password" placeholder="Contraseña" required />
+    <button type="submit">Registrarse</button>
+    <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+  </form>
+</div>
+
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const data = {
+      first_name: document.getElementById('registerFirstName').value,
+      email: document.getElementById('registerEmail').value,
+      password: document.getElementById('registerPassword').value
+    };
+
+    try {
+      const res = await fetch('/api/sessions/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert(result.message);
+        window.location.href = '/login';
+      } 
+    } catch (err) {
+      console.error('Error en registro:', err);
+      alert('Error inesperado');
+    }
+  });
+</script>
