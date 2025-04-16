@@ -3,6 +3,6 @@ dotenv.config();
 
 export default {
   port: process.env.PORT || 3000,
-  mongoUri: process.env.MONGODB_URI,
+  mongoUrl: process.env.MONGODB_URL,
   jwtSecret: process.env.JWT_SECRET,
 };
