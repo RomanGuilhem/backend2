@@ -1,71 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: #1d3557;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+main {
+    padding: 20px;
+    min-height: 60vh;
+}
+
+footer {
+    background: #1d3557;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+footer .copy {
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+
+footer ul {
+    list-style: none;
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    gap: 15px;
 }
 
-.container {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 400px;
-    text-align: center;
+footer ul li {
+    display: inline-block;
 }
 
-h1, h2 {
-    color: #333;
-    margin-bottom: 20px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-}
-
-input {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-button {
-    padding: 12px;
-    background-color: #007bff;
+footer ul li a {
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    font-size: 20px;
+    transition: transform 0.3s ease;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
-#profileSection {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-top: 20px;
-    border-radius: 4px;
-    text-align: left;
-}
-
-#profileSection h3 {
-    margin-top: 0;
-    color: #333;
-}
-
-#profileSection p {
-    margin-bottom: 8px;
-    color: #666;
+footer ul li a:hover {
+    transform: scale(1.5);
+    color: #910a00;
 }

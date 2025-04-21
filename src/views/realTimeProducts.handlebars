@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Productos en Tiempo Real</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    input, select, button {
+      padding: 10px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Manejo en Tiempo Real</h1>
+
+  <input type="text" id="nombre" placeholder="Nombre del producto">
+  <input type="number" id="precio" placeholder="Precio del producto">
+  <input type="number" id="stock" placeholder="Stock">
+  <select id="categoria">
+    <option value="" disabled selected>Seleccione una categoría</option>
+    <option value="Electrónica">Electrónica</option>
+    <option value="Ropa">Ropa</option>
+    <option value="Hogar">Hogar</option>
+    <option value="Alimentos">Alimentos</option>
+  </select>
+  <button onclick="agregarProducto()">Agregar Producto</button>
+
+  <h2>Lista de Productos</h2>
+  <ul id="productos-list">
+    {{#each productos}}
+      <li id="producto-{{this._id}}">
+        <span><strong>{{this.nombre}}</strong> - ${{this.precio}} | Stock: {{this.stock}} | Categoría: {{this.categoria}}</span>
+        <button onclick="eliminarProducto('{{this._id}}')">Eliminar</button>
+      </li>
+    {{/each}}
+  </ul>
+
+  <a href="/">Volver al Inicio</a>
+
+  <script>
+    const socket = io();
+
+    socket.on("productosActualizados", (productos) => {
+      const productosList = document.getElementById("productos-list");
+      productosList.innerHTML = "";
+
+      productos.forEach((producto) => {
+        let productoElemento = document.createElement("li");
+        productoElemento.id = `producto-${producto._id}`;
+        productoElemento.innerHTML = `
+          <span><strong>${producto.nombre}</strong> - $${producto.precio} | Stock: ${producto.stock} | Categoría: ${producto.categoria}</span>
+          <button onclick="eliminarProducto('${producto._id}')">Eliminar</button>
+        `;
+        productosList.appendChild(productoElemento);
+      });
+    });
+
+    function agregarProducto() {
+      const nombre = document.getElementById("nombre").value.trim();
+      const precio = parseFloat(document.getElementById("precio").value.trim());
+      const stock = parseInt(document.getElementById("stock").value.trim());
+      const categoria = document.getElementById("categoria").value;
+
+      if (!nombre || isNaN(precio) || precio <= 0 || isNaN(stock) || stock < 0 || !categoria) {
+        alert("Por favor, ingrese valores válidos en todos los campos.");
+        return;
+      }
+
+      const nuevoProducto = { nombre, precio, stock, categoria };
+
+      socket.emit("nuevoProducto", nuevoProducto);
+
+      document.getElementById("nombre").value = "";
+      document.getElementById("precio").value = "";
+      document.getElementById("stock").value = "";
+      document.getElementById("categoria").value = "";
+    }
+
+    function eliminarProducto(id) {
+      if (confirm("¿Seguro que deseas eliminar este producto?")) {
+        socket.emit("eliminarProducto", id);
+        document.getElementById(`producto-${id}`)?.remove(); 
+      }
+    }
+  </script>
+
+</body>
+</html>
