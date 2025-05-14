@@ -1,6 +1,6 @@
 import { Router } from "express";
-import Product from "../models/Product.js";
-import Cart from "../models/Cart.js";
+import Product from "../dao/models/Product.js";
+import Cart from "../dao/models/Cart.js";
 import { auth } from "../midleware/auth.js";
 
 const viewsRouter = Router();
@@ -115,7 +115,7 @@ viewsRouter.get("/products", auth, async (req, res) => {
         hasNextPage: result.hasNextPage,
         prevPage: result.prevPage,
         nextPage: result.nextPage,
-      }
+      },
     });
   } catch (error) {
     console.error("Error obteniendo productos:", error);
@@ -151,13 +151,16 @@ viewsRouter.get("/carts/:cid", auth, async (req, res) => {
   }
 });
 
-viewsRouter.get('/login', (req, res) => {
-  res.render('login');
+viewsRouter.get("/login", (req, res) => {
+  res.render("login");
 });
 
-viewsRouter.get('/register', (req, res) => {
-  res.render('register');
+viewsRouter.get("/register", (req, res) => {
+  res.render("register");
 });
 
+viewsRouter.get("/purchase", (req, res) => {
+  res.render("purchase");
+});
 
 export default viewsRouter;

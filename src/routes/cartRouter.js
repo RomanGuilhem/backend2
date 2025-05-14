@@ -1,131 +1,134 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import Cart from "../models/Cart.js";
-import Product from "../models/Product.js";
+import Cart from "../dao/models/Cart.js";
+import Product from "../dao/models/Product.js";
+import passport from "passport";
+import { authorize } from "../midleware/authorization.js";
+import Ticket from "../dao/models/Ticket.js";
+import purchaseCart from "../controllers/purchase.controller.js";
 
 const cartRouter = Router();
+const auth = [passport.authenticate("jwt", { session: false })];
 
-cartRouter.get("/:cid", async (req, res) => {
-    try {
-        const { cid } = req.params;
+cartRouter.get("/", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    let cart = await Cart.findOne({ user: userId }).populate("products.product");
 
-        if (!mongoose.Types.ObjectId.isValid(cid)) {
-            return res.status(400).json({ status: "error", message: "ID de carrito inválido" });
-        }
-
-        const cart = await Cart.findById(cid).populate("products.product").select("-__v");
-        if (!cart) {
-            return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
-        }
-
-        res.json({ status: "success", cart });
-    } catch (error) {
-        console.error("Error obteniendo el carrito:", error);
-        res.status(500).json({ status: "error", message: "Error interno del servidor" });
+    if (!cart) {
+      cart = await Cart.create({ user: userId, products: [] });
     }
+
+    res.json({ status: "success", cart });
+  } catch (error) {
+    console.error("Error obteniendo el carrito:", error);
+    res.status(500).json({ status: "error", message: "Error interno del servidor" });
+  }
 });
 
-cartRouter.post("/", async (req, res) => {
-    try {
-        const newCart = await Cart.create({ products: [] });
-        res.json({ status: "success", message: "Carrito creado", cartId: newCart._id });
-    } catch (error) {
-        console.error("Error creando el carrito:", error);
-        res.status(500).json({ status: "error", message: "Error interno del servidor" });
+cartRouter.post("/", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    let existingCart = await Cart.findOne({ user: userId });
+
+    if (existingCart) {
+      return res.status(200).json({ status: "success", cartId: existingCart._id });
     }
+
+    const newCart = await Cart.create({ user: userId, products: [] });
+
+    res.status(201).json({ status: "success", cartId: newCart._id });
+  } catch (error) {
+    console.error("Error creando el carrito:", error);
+    res.status(500).json({ status: "error", message: "No se pudo crear el carrito." });
+  }
 });
 
-cartRouter.post("/:cid/products/:pid", async (req, res) => {
-    try {
-        const { cid, pid } = req.params;
-        let { quantity } = req.body;
+cartRouter.post("/products/:pid", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { pid } = req.params;
+    const { quantity = 1 } = req.body;
 
-        console.log("CID recibido en el backend:", cid);
-        console.log("PID recibido en el backend:", pid);
-
-        if (!mongoose.Types.ObjectId.isValid(cid) || !mongoose.Types.ObjectId.isValid(pid)) {
-            return res.status(400).json({ status: "error", message: "ID de carrito o producto inválido" });
-        }
-
-        if (!quantity || isNaN(quantity) || quantity <= 0) {
-            return res.status(400).json({ status: "error", message: "La cantidad debe ser un número mayor a 0" });
-        }
-
-        const cart = await Cart.findById(cid);
-        if (!cart) {
-            return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
-        }
-
-        const product = await Product.findById(pid);
-        if (!product) {
-            return res.status(404).json({ status: "error", message: "Producto no encontrado" });
-        }
-
-        const updatedCart = await Cart.findOneAndUpdate(
-            { _id: cid, "products.product": pid },
-            { $inc: { "products.$.quantity": quantity } },
-            { new: true }
-        ).populate("products.product");
-
-        if (!updatedCart) {
-            await Cart.findByIdAndUpdate(
-                cid,
-                { $push: { products: { product: pid, quantity } } },
-                { new: true }
-            );
-        }
-
-        res.json({ status: "success", message: "Producto agregado al carrito", cart: updatedCart });
-    } catch (error) {
-        console.error("Error agregando producto al carrito:", error);
-        res.status(500).json({ status: "error", message: "Error interno del servidor" });
+    if (!mongoose.Types.ObjectId.isValid(pid)) {
+      return res.status(400).json({ status: "error", message: "ID de producto inválido" });
     }
+
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+      cart = await Cart.create({ user: userId, products: [] });
+    }
+
+    const product = await Product.findById(pid);
+    if (!product) {
+      return res.status(404).json({ status: "error", message: "Producto no encontrado" });
+    }
+
+    const existingProductIndex = cart.products.findIndex(p => p.product.toString() === pid);
+    if (existingProductIndex !== -1) {
+      cart.products[existingProductIndex].quantity += quantity;
+    } else {
+      cart.products.push({ product: pid, quantity });
+    }
+
+    const updatedCart = await cart.save();
+    await updatedCart.populate("products.product");
+
+    res.json({ status: "success", message: "Producto agregado al carrito", cart: updatedCart });
+  } catch (error) {
+    console.error("Error agregando producto al carrito:", error);
+    res.status(500).json({ status: "error", message: "Error interno del servidor" });
+  }
 });
 
-cartRouter.delete("/:cid/products/:pid", async (req, res) => {
-    try {
-        const { cid, pid } = req.params;
+cartRouter.delete("/products/:pid", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { pid } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(cid) || !mongoose.Types.ObjectId.isValid(pid)) {
-            return res.status(400).json({ status: "error", message: "ID de carrito o producto inválido" });
-        }
-
-        const cart = await Cart.findByIdAndUpdate(
-            cid,
-            { $pull: { products: { product: pid } } },
-            { new: true }
-        );
-
-        if (!cart) {
-            return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
-        }
-
-        res.json({ status: "success", message: "Producto eliminado del carrito", cart });
-    } catch (error) {
-        console.error("Error eliminando producto del carrito:", error);
-        res.status(500).json({ status: "error", message: "Error interno del servidor" });
+    if (!mongoose.Types.ObjectId.isValid(pid)) {
+      return res.status(400).json({ status: "error", message: "ID de producto inválido" });
     }
+
+    const cart = await Cart.findOneAndUpdate(
+      { user: userId },
+      { $pull: { products: { product: pid } } },
+      { new: true }
+    ).populate("products.product");
+console.log("Carrito encontrado:", JSON.stringify(cart, null, 2));
+
+    if (!cart) {
+      return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
+    }
+
+    res.json({ status: "success", message: "Producto eliminado del carrito", cart });
+  } catch (error) {
+    console.error("Error eliminando producto del carrito:", error);
+    res.status(500).json({ status: "error", message: "Error interno del servidor" });
+  }
 });
 
-cartRouter.delete("/:cid", async (req, res) => {
-    try {
-        const { cid } = req.params;
+cartRouter.delete("/", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
 
-        if (!mongoose.Types.ObjectId.isValid(cid)) {
-            return res.status(400).json({ status: "error", message: "ID de carrito inválido" });
-        }
+    const cart = await Cart.findOneAndUpdate(
+      { user: userId },
+      { products: [] },
+      { new: true }
+    );
 
-        const cart = await Cart.findByIdAndUpdate(cid, { products: [] }, { new: true });
-
-        if (!cart) {
-            return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
-        }
-
-        res.json({ status: "success", message: "Carrito vaciado correctamente", cart });
-    } catch (error) {
-        console.error("Error vaciando el carrito:", error);
-        res.status(500).json({ status: "error", message: "Error interno del servidor" });
+    if (!cart) {
+      return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
     }
+
+    res.json({ status: "success", message: "Carrito vaciado correctamente", cart });
+  } catch (error) {
+    console.error("Error vaciando el carrito:", error);
+    res.status(500).json({ status: "error", message: "Error interno del servidor" });
+  }
 });
+
+cartRouter.post("/purchase", auth, purchaseCart);
 
 export default cartRouter;

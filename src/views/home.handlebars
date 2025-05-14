@@ -45,8 +45,12 @@
 <body>
 
   <h1>Lista de Productos</h1>   
-  <h2><a href="/realtimeproducts">Modificar Productos en Tiempo Real</a></h2>
-  <h2><a href="/cart">Ver Carrito</a></h2>
+  
+{{#if (eq user.role "admin")}}
+  <a href="/realtimeproducts">Administrar productos</a>
+{{/if}}
+
+<h2><a id="ver-carrito-link" href="#">Ver Carrito</a></h2>
 
   <label for="filtro-categoria">Filtrar por categoría:</label>
   <select id="filtro-categoria" onchange="actualizarFiltros()">
@@ -101,87 +105,109 @@
   </div>
 
   <script>
-    function actualizarFiltros() {
-      const categoriaSeleccionada = document.getElementById("filtro-categoria").value;
-      const disponibilidadSeleccionada = document.getElementById("filtro-disponibilidad").value;
-      const ordenSeleccionado = document.getElementById("filtro-orden").value;
+  function actualizarFiltros() {
+    const categoriaSeleccionada = document.getElementById("filtro-categoria").value;
+    const disponibilidadSeleccionada = document.getElementById("filtro-disponibilidad").value;
+    const ordenSeleccionado = document.getElementById("filtro-orden").value;
 
-      const url = new URL(window.location.href);
+    const url = new URL(window.location.href);
 
-      if (categoriaSeleccionada === "todas") {
-        url.searchParams.delete("categoria");
-      } else {
-        url.searchParams.set("categoria", categoriaSeleccionada);
-      }
-
-      if (disponibilidadSeleccionada === "todas") {
-        url.searchParams.delete("disponible");
-      } else {
-        url.searchParams.set("disponible", disponibilidadSeleccionada);
-      }
-
-      if (ordenSeleccionado === "none") {
-        url.searchParams.delete("sort");
-      } else {
-        url.searchParams.set("sort", ordenSeleccionado);
-      }
-
-      window.location.href = url.toString();
+    if (categoriaSeleccionada === "todas") {
+      url.searchParams.delete("categoria");
+    } else {
+      url.searchParams.set("categoria", categoriaSeleccionada);
     }
 
-    async function obtenerCarrito() {
-      let cartId = localStorage.getItem("cartId");
-
-      if (!cartId) {
-        try {
-          const response = await fetch("/api/carts", { method: "POST" });
-          if (!response.ok) throw new Error("No se pudo crear un carrito.");
-
-          const data = await response.json();
-          if (data.status === "success") {
-            cartId = data.cartId;
-            localStorage.setItem("cartId", cartId);
-          } else {
-            throw new Error("Error al obtener carrito: " + data.message);
-          }
-        } catch (error) {
-          console.error(error);
-          alert("Error al obtener carrito.");
-          return null;
-        }
-      }
-
-      return cartId;
+    if (disponibilidadSeleccionada === "todas") {
+      url.searchParams.delete("disponible");
+    } else {
+      url.searchParams.set("disponible", disponibilidadSeleccionada);
     }
 
-    async function agregarAlCarrito(productId) {
-      const cartId = await obtenerCarrito();
-      if (!cartId) {
-        alert("No se pudo obtener un carrito válido.");
-        return;
-      }
+    if (ordenSeleccionado === "none") {
+      url.searchParams.delete("sort");
+    } else {
+      url.searchParams.set("sort", ordenSeleccionado);
+    }
 
+    window.location.href = url.toString();
+  }
+
+  async function obtenerCarrito() {
+    let cartId = localStorage.getItem("cartId");
+
+    if (!cartId) {
       try {
-        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+        const response = await fetch("/api/carts", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quantity: 1 }),
+          credentials: "include",
         });
-
-        if (!response.ok) throw new Error("Error al agregar el producto.");
+        if (!response.ok) throw new Error("No se pudo crear un carrito.");
 
         const data = await response.json();
         if (data.status === "success") {
-          alert("Producto agregado al carrito");
+          cartId = data.cartId;
+          localStorage.setItem("cartId", cartId);
         } else {
-          throw new Error(data.message);
+          throw new Error("Error al obtener carrito: " + data.message);
         }
       } catch (error) {
         console.error(error);
-        alert("Error al agregar producto al carrito.");
+        alert("Error al obtener carrito.");
+        return null;
       }
     }
-  </script>
 
+    return cartId;
+  }
+
+  async function agregarAlCarrito(productId) {
+    const cartId = await obtenerCarrito();
+    if (!cartId) {
+      alert("No se pudo obtener un carrito válido.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/carts/products/${productId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity: 1 }),
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Error al agregar el producto.");
+
+      const data = await response.json();
+      if (data.status === "success") {
+        alert("Producto agregado al carrito");
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error al agregar producto al carrito.");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const linkCarrito = document.getElementById("ver-carrito-link");
+    if (!linkCarrito) return;
+
+    let cartId = localStorage.getItem("cartId");
+    if (!cartId) {
+      cartId = await obtenerCarrito();
+    }
+
+    if (cartId) {
+      linkCarrito.href = `/cart?cartId=${cartId}`;
+    } else {
+      linkCarrito.addEventListener("click", (e) => {
+        e.preventDefault();
+        alert("No se pudo obtener un carrito válido.");
+      });
+    }
+  });
+</script>
 </body>
 </html>

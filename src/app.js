@@ -12,7 +12,7 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import { initializePassport } from "./config/passport.config.js";
 import { handlebarsHelpers } from "./utils/handlebarsHelpers.js";
-import Product from "./models/Product.js";
+import Product from "./dao/models/Product.js";
 import viewsRouter from "./routes/viewsRouter.js";
 import productRouter from "./routes/product.router.js";
 import cartRouter from "./routes/cartRouter.js";
@@ -58,7 +58,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 initializePassport();
 app.use(passport.initialize());
-
 app.use(async (req, res, next) => {
   const token = req.cookies.jwt;
   if (!token) {
@@ -68,7 +67,7 @@ app.use(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
-  } catch (err) {
+  } catch {
     req.user = null;
   }
   next();

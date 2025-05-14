@@ -1,0 +1,40 @@
+<h1>¡Gracias por tu compra!</h1>
+
+<div id="ticket-info">
+  <p><strong>Código de ticket:</strong> {{ticket.code}}</p>
+  <p><strong>Fecha:</strong> {{ticket.purchase_datetime}}</p>
+  <p><strong>Monto total:</strong> ${{ticket.amount}}</p>
+
+  <h3>Productos comprados:</h3>
+  <div id="ticket-productos-container">
+    <ul id="ticket-products"></ul>
+  </div>
+</div>
+
+<button onclick="location.href='/'">Volver al inicio</button>
+
+<script>
+  const ticketData = JSON.parse(sessionStorage.getItem("lastTicket"));
+  if (ticketData) {
+    document.getElementById("ticket-info").innerHTML = `
+      <p><strong>Código de ticket:</strong> ${ticketData.code}</p>
+      <p><strong>Fecha:</strong> ${new Date(ticketData.purchase_datetime).toLocaleString()}</p>
+      <p><strong>Monto total:</strong> $${ticketData.amount}</p>
+      <h3>Productos comprados:</h3>
+      <div id="ticket-productos-container">
+        <ul id="ticket-products"></ul>
+      </div>
+    `;
+
+    const list = document.getElementById("ticket-products");
+    ticketData.products.forEach(prod => {
+      const li = document.createElement("li");
+      li.textContent = `${prod.nombre} - $${prod.precio} x ${prod.cantidad} = $${prod.subtotal}`;
+      list.appendChild(li);
+    });
+
+    sessionStorage.removeItem("lastTicket");
+  } else {
+    document.getElementById("ticket-info").innerHTML = "<p>No hay información de compra.</p>";
+  }
+</script>
