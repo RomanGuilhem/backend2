@@ -39,3 +39,18 @@ export const getCurrentUser = (req, res) => {
   const userDTO = new UserDTO(req.user);
   return res.status(200).json({ status: 'success', user: userDTO });
 };
+
+export const logout = (req, res) => {
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict', 
+    path: '/'
+  });
+
+  return res.status(200).json({ 
+    status: 'success', 
+    message: 'Sesión cerrada correctamente' 
+  });
+};
+

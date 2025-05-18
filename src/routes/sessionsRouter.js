@@ -30,5 +30,7 @@ const customPassport = (strategy) => (req, res, next) => {
 router.post('/register', customPassport('register'), sessionController.register);
 router.post('/login', customPassport('login'), sessionController.login);
 router.get('/current', customPassport('jwt'), sessionController.getCurrentUser);
+router.get('/logout', sessionController.logout);
+
 
 export default router;

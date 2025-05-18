@@ -131,4 +131,37 @@ cartRouter.delete("/", auth, async (req, res) => {
 
 cartRouter.post("/purchase", auth, purchaseCart);
 
+
+cartRouter.put("/", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { products } = req.body; 
+
+    if (!Array.isArray(products)) {
+      return res.status(400).json({ status: "error", message: "El formato de productos es inválido" });
+    }
+
+    const cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+      return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
+    }
+
+    for (const item of products) {
+      const productExists = await Product.findById(item.product);
+      if (!productExists) {
+        return res.status(404).json({ status: "error", message: `Producto no encontrado: ${item.product}` });
+      }
+    }
+
+    cart.products = products;
+    await cart.save();
+    await cart.populate("products.product");
+
+    res.json({ status: "success", message: "Carrito actualizado", cart });
+  } catch (error) {
+    console.error("Error actualizando el carrito:", error);
+    res.status(500).json({ status: "error", message: "Error interno del servidor" });
+  }
+});
+
 export default cartRouter;

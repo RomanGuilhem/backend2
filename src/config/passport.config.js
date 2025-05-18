@@ -18,7 +18,7 @@ export const initializePassport = () => {
     },
     async (req, email, password, done) => {
       try {
-        const { first_name } = req.body;
+        const { first_name, role = 'user' } = req.body;
 
         const exists = await userRepo.getByEmail(email);
         if (exists) {
@@ -28,7 +28,8 @@ export const initializePassport = () => {
         const newUser = await userRepo.register({
           first_name,
           email,
-          password 
+          password,
+          role
         });
 
         return done(null, newUser);

@@ -45,6 +45,7 @@ viewsRouter.get("/", auth, async (req, res) => {
     const nextLink = hasNextPage ? buildLink(nextPage) : null;
 
     res.render("home", {
+      user: req.user,
       status: "success",
       productos,
       categorias,
@@ -70,7 +71,7 @@ viewsRouter.get("/realTimeProducts", auth, async (req, res) => {
   try {
     const productos = await Product.find().lean();
     res.render("realTimeProducts", {
-      title: "Productos en Tiempo Real",
+      nombre: "Productos en Tiempo Real",
       productos,
     });
   } catch (error) {

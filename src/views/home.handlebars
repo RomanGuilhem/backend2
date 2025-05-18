@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Productos</title>
+  <nombre>Lista de Productos</nombre>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body {
@@ -46,9 +46,7 @@
 
   <h1>Lista de Productos</h1>   
   
-{{#if (eq user.role "admin")}}
-  <a href="/realtimeproducts">Administrar productos</a>
-{{/if}}
+ <h2><a href="/realtimeproducts">Administrar productos</a></h2>
 
 <h2><a id="ver-carrito-link" href="#">Ver Carrito</a></h2>
 
@@ -73,7 +71,7 @@
     <option value="asc" {{#if (eq sort "asc")}}selected{{/if}}>Menor a mayor</option>
     <option value="desc" {{#if (eq sort "desc")}}selected{{/if}}>Mayor a menor</option>
   </select>
-
+  <button id="btnLogout">Cerrar sesión</button>
   <ul id="productos-list">
     {{#each productos}}
       <li>
@@ -208,6 +206,21 @@
       });
     }
   });
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/api/sessions/logout', {
+      method: 'GET',
+      credentials: 'same-origin'
+    });
+    if (response.ok) {
+      window.location.href = '/login';
+    } else {
+      console.error('Logout falló:', await response.text());
+    }
+  } catch (err) {
+    console.error('Error en logout:', err);
+  }
+});
 </script>
 </body>
 </html>

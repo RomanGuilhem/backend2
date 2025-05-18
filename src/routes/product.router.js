@@ -67,7 +67,6 @@ productRouter.get("/", async (req, res) => {
 productRouter.post(
   "/",
   passport.authenticate("jwt", { session: false }),
-  authorize(["admin"]),
   async (req, res) => {
     try {
       const product = new Product(req.body);
@@ -83,7 +82,6 @@ productRouter.post(
 productRouter.put(
   "/:pid",
   passport.authenticate("jwt", { session: false }),
-  authorize(["admin"]),
   async (req, res) => {
     try {
       const updated = await Product.findByIdAndUpdate(req.params.pid, req.body, { new: true });
@@ -99,7 +97,6 @@ productRouter.put(
 productRouter.delete(
   "/:pid",
   passport.authenticate("jwt", { session: false }),
-  authorize(["admin"]),
   async (req, res) => {
     try {
       const deleted = await Product.findByIdAndDelete(req.params.pid);
@@ -111,5 +108,18 @@ productRouter.delete(
     }
   }
 );
+productRouter.get("/:pid", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.pid).lean();
+    if (!product) {
+      return res.status(404).json({ status: "error", error: "Producto no encontrado" });
+    }
+    res.json({ status: "success", product });
+  } catch (error) {
+    console.error("Error al obtener producto por ID:", error);
+    res.status(500).json({ status: "error", error: "Error al obtener producto" });
+  }
+});
+
 
 export default productRouter;
