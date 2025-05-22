@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <nombre>{{producto.nombre}}</nombre>
+  <title>{{producto.title}}</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -34,11 +34,11 @@
 <body>
 
   <div class="container">
-    <h1>{{producto.nombre}}</h1>
-    <p><strong>Precio:</strong> ${{product.precio}}</p>
-    <p><strong>Categoría:</strong> {{product.categoria}}</p>
+    <h1>{{producto.title}}</h1>
+    <p><strong>price:</strong> ${{product.price}}</p>
+    <p><strong>Categoría:</strong> {{product.category}}</p>
     <p><strong>Stock:</strong> {{product.stock}}</p>
-    <p><strong>Descripción:</strong> {{product.descripcion}}</p>
+    <p><strong>Descripción:</strong> {{product.description}}</p>
     
     {{#if (gt product.stock 0)}}
       <button onclick="agregarAlCarrito('{{product._id}}')">Agregar al carrito</button>

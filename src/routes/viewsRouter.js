@@ -1,27 +1,27 @@
 import { Router } from "express";
 import Product from "../dao/models/Product.js";
 import Cart from "../dao/models/Cart.js";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 
 const viewsRouter = Router();
 
 viewsRouter.get("/", auth, async (req, res) => {
   try {
-    let { limit = 10, page = 1, sort, query, categoria, disponible } = req.query;
+    let { limit = 10, page = 1, sort, query, category, disponible } = req.query;
 
     const limitNum = parseInt(limit) || 10;
     const pageNum = parseInt(page) || 1;
 
     const filter = {};
-    if (query) filter.nombre = { $regex: query, $options: "i" };
-    if (categoria && categoria !== "todas") filter.categoria = categoria;
+    if (query) filter.title = { $regex: query, $options: "i" };
+    if (category && category !== "todas") filter.category = category;
     if (disponible === "true") {
       filter.stock = { $gt: 0 };
     } else if (disponible === "false") {
       filter.stock = 0;
     }
 
-    const sortOption = sort === "asc" ? { precio: 1 } : sort === "desc" ? { precio: -1 } : {};
+    const sortOption = sort === "asc" ? { price: 1 } : sort === "desc" ? { price: -1 } : {};
 
     const totalDocs = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalDocs / limitNum);
@@ -30,7 +30,7 @@ viewsRouter.get("/", auth, async (req, res) => {
       .limit(limitNum)
       .skip((pageNum - 1) * limitNum)
       .lean();
-    const categorias = await Product.distinct("categoria");
+    const categorys = await Product.distinct("category");
 
     const hasPrevPage = pageNum > 1;
     const hasNextPage = pageNum < totalPages;
@@ -39,7 +39,7 @@ viewsRouter.get("/", auth, async (req, res) => {
 
     const baseUrl = `${req.protocol}://${req.get("host")}${req.baseUrl}`;
     const buildLink = (p) =>
-      `${baseUrl}/?limit=${limitNum}&page=${p}${sort ? `&sort=${sort}` : ""}${query ? `&query=${query}` : ""}${categoria ? `&categoria=${categoria}` : ""}${disponible !== undefined ? `&disponible=${disponible}` : ""}`;
+      `${baseUrl}/?limit=${limitNum}&page=${p}${sort ? `&sort=${sort}` : ""}${query ? `&query=${query}` : ""}${category ? `&category=${category}` : ""}${disponible !== undefined ? `&disponible=${disponible}` : ""}`;
 
     const prevLink = hasPrevPage ? buildLink(prevPage) : null;
     const nextLink = hasNextPage ? buildLink(nextPage) : null;
@@ -48,8 +48,8 @@ viewsRouter.get("/", auth, async (req, res) => {
       user: req.user,
       status: "success",
       productos,
-      categorias,
-      categoriaActual: categoria || "todas",
+      categorys,
+      categoryActual: category || "todas",
       disponibilidad: disponible !== undefined ? disponible : "todas",
       sort: sort || "none",
       totalPages,
@@ -71,7 +71,7 @@ viewsRouter.get("/realTimeProducts", auth, async (req, res) => {
   try {
     const productos = await Product.find().lean();
     res.render("realTimeProducts", {
-      nombre: "Productos en Tiempo Real",
+      title: "Productos en Tiempo Real",
       productos,
     });
   } catch (error) {

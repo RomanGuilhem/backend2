@@ -9,7 +9,12 @@ export const register = async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Registro fallido: datos inválidos o usuario ya existe' });
   }
 
-  const token = jwt.sign({ id: user._id, first_name: user.first_name }, JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign(
+    { id: user._id, first_name: user.first_name, role: user.role }, // AÑADIDO role
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+
   res.cookie('jwt', token, { httpOnly: true });
   res.status(200).json({ status: 'success', message: 'Usuario registrado correctamente' });
 };
@@ -20,13 +25,20 @@ export const login = async (req, res) => {
     return res.status(401).json({ status: 'error', message: 'Credenciales inválidas' });
   }
 
-  const token = jwt.sign({ id: user._id, first_name: user.first_name }, JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign(
+    { id: user._id, first_name: user.first_name, role: user.role },
+    JWT_SECRET,
+    {
+      expiresIn: '1h'
+    }
+  );
+
   res.cookie('jwt', token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  maxAge: 3600000, 
-});
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 3600000
+  });
 
   res.status(200).json({ status: 'success', message: 'Login exitoso' });
 };
@@ -44,13 +56,12 @@ export const logout = (req, res) => {
   res.clearCookie('jwt', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict', 
+    sameSite: 'strict',
     path: '/'
   });
 
-  return res.status(200).json({ 
-    status: 'success', 
-    message: 'Sesión cerrada correctamente' 
+  return res.status(200).json({
+    status: 'success',
+    message: 'Sesión cerrada correctamente'
   });
 };
-

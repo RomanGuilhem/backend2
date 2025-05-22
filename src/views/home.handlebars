@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <nombre>Lista de Productos</nombre>
+  <title>Lista de Productos</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body {
@@ -45,16 +45,19 @@
 <body>
 
   <h1>Lista de Productos</h1>   
-  
+  {{#if (eq user.role 'admin')}}
  <h2><a href="/realtimeproducts">Administrar productos</a></h2>
+{{/if}}
 
+  {{#if (eq user.role 'user')}}
 <h2><a id="ver-carrito-link" href="#">Ver Carrito</a></h2>
+{{/if}}
 
-  <label for="filtro-categoria">Filtrar por categoría:</label>
-  <select id="filtro-categoria" onchange="actualizarFiltros()">
-    <option value="todas" {{#if (eq categoriaActual "todas")}}selected{{/if}}>Todas</option>
-    {{#each categorias}}
-      <option value="{{this}}" {{#if (eq this ../categoriaActual)}}selected{{/if}}>{{this}}</option>
+  <label for="filtro-category">Filtrar por categoría:</label>
+  <select id="filtro-category" onchange="actualizarFiltros()">
+    <option value="todas" {{#if (eq categoryActual "todas")}}selected{{/if}}>Todas</option>
+    {{#each categorys}}
+      <option value="{{this}}" {{#if (eq this ../categoryActual)}}selected{{/if}}>{{this}}</option>
     {{/each}}
   </select>
 
@@ -65,7 +68,7 @@
     <option value="false" {{#if (eq disponibilidad "false")}}selected{{/if}}>No disponibles</option>
   </select>
 
-  <label for="filtro-orden">Ordenar por precio:</label>
+  <label for="filtro-orden">Ordenar por price:</label>
   <select id="filtro-orden" onchange="actualizarFiltros()">
     <option value="none" {{#if (eq sort "none")}}selected{{/if}}>Sin orden</option>
     <option value="asc" {{#if (eq sort "asc")}}selected{{/if}}>Menor a mayor</option>
@@ -76,9 +79,9 @@
     {{#each productos}}
       <li>
         <a href="/products/{{_id}}">
-          <strong>{{nombre}}</strong>
+          <strong>{{title}}</strong>
         </a>
-        - ${{precio}} - {{categoria}} - 
+        - ${{price}} - {{category}} - 
         {{#if (gt stock 0)}}
           <span style="color: green;">Disponible</span>
         {{else}}
@@ -104,16 +107,16 @@
 
   <script>
   function actualizarFiltros() {
-    const categoriaSeleccionada = document.getElementById("filtro-categoria").value;
+    const categorySeleccionada = document.getElementById("filtro-category").value;
     const disponibilidadSeleccionada = document.getElementById("filtro-disponibilidad").value;
     const ordenSeleccionado = document.getElementById("filtro-orden").value;
 
     const url = new URL(window.location.href);
 
-    if (categoriaSeleccionada === "todas") {
-      url.searchParams.delete("categoria");
+    if (categorySeleccionada === "todas") {
+      url.searchParams.delete("category");
     } else {
-      url.searchParams.set("categoria", categoriaSeleccionada);
+      url.searchParams.set("category", categorySeleccionada);
     }
 
     if (disponibilidadSeleccionada === "todas") {

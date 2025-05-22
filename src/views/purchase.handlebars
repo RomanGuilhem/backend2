@@ -29,7 +29,7 @@
     const list = document.getElementById("ticket-products");
     ticketData.products.forEach(prod => {
       const li = document.createElement("li");
-      li.textContent = `${prod.nombre} - $${prod.precio} x ${prod.cantidad} = $${prod.subtotal}`;
+      li.textContent = `${prod.title} - $${prod.price} x ${prod.cantidad} = $${prod.subtotal}`;
       list.appendChild(li);
     });
 

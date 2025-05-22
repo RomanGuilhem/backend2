@@ -3,11 +3,11 @@ import mongoosePaginate from "mongoose-paginate-v2";
 
 const productSchema = new mongoose.Schema(
   {
-    nombre: { type: String, required: true, trim: true },
-    precio: { type: Number, required: true, min: 0 },
+    title: { type: String, required: true, trim: true },
+    price: { type: Number, required: true, min: 0 },
     description: { type: String, trim: true },
     stock: { type: Number, required: true, default: 0, min: 0 },
-    categoria: { type: String, required: true, trim: true },
+    category: { type: String, required: true, trim: true },
   },
   { timestamps: true }
 );

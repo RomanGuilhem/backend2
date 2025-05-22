@@ -24,7 +24,7 @@
     }
 
     try {
-      const response = await fetch(`/api/carts`);
+      const response = await fetch(`/api/carts/${cartId}`);
       if (!response.ok) throw new Error("No se pudo cargar el carrito.");
 
       const data = await response.json();
@@ -42,8 +42,8 @@
       productos.forEach(p => {
         const li = document.createElement("li");
         li.innerHTML = `
-          <strong>${p.product.nombre}</strong> -
-          Precio: $${p.product.precio} -
+          <strong>${p.product.title}</strong> -
+          price: $${p.product.price} -
           Cantidad: ${p.quantity}
           <button onclick="eliminarProducto('${p.product._id}')">-</button>
           <button onclick="agregarProducto('${p.product._id}')">+</button>
@@ -64,8 +64,10 @@
   }
 
   async function vaciarCarrito() {
+    const cartId = localStorage.getItem("cartId");
+
     try {
-      const response = await fetch(`/api/carts/`, { method: "DELETE" });
+      const response = await fetch(`/api/carts/${cartId}`, { method: "DELETE" });
       const data = await response.json();
       if (data.status === "success") {
         alert("Carrito vaciado correctamente.");
@@ -80,8 +82,10 @@
   }
 
   async function eliminarProducto(productId) {
+    const cartId = localStorage.getItem("cartId");
+
     try {
-      const response = await fetch(`/api/carts/products/${productId}`, { method: "DELETE" });
+      const response = await fetch(`/api/carts/${cartId}/product/${productId}`, { method: "DELETE" });
       const data = await response.json();
       if (data.status === "success") {
         cargarCarrito();
@@ -95,8 +99,10 @@
   }
 
   async function agregarProducto(productId) {
+    const cartId = localStorage.getItem("cartId");
+
     try {
-      const response = await fetch(`/api/carts/products/${productId}`, {
+      const response = await fetch(`/api/carts/${cartId}/product/${productId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quantity: 1 })
@@ -114,8 +120,10 @@
   }
 
   async function finalizarCompra() {
+    const cartId = localStorage.getItem("cartId");
+
     try {
-      const response = await fetch(`/api/carts/purchase`, {
+      const response = await fetch(`/api/carts/${cartId}/purchase`, {
         method: "POST"
       });
 

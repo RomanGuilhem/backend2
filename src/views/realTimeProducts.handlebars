@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <nombre>Agregar Productos en Tiempo Real</nombre>
+  <title>Agregar Productos en Tiempo Real</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body {
@@ -44,10 +44,10 @@
 
   <h1>Manejo en Tiempo Real</h1>
 
-  <input type="text" id="nombre" placeholder="Nombre del producto">
-  <input type="number" id="precio" placeholder="Precio del producto">
+  <input type="text" id="title" placeholder="title del producto">
+  <input type="number" id="price" placeholder="price del producto">
   <input type="number" id="stock" placeholder="Stock">
-  <select id="categoria">
+  <select id="category">
     <option value="" disabled selected>Seleccione una categoría</option>
     <option value="Electrónica">Electrónica</option>
     <option value="Ropa">Ropa</option>
@@ -60,7 +60,7 @@
   <ul id="productos-list">
     {{#each productos}}
       <li id="producto-{{this._id}}">
-        <span><strong>{{this.nombre}}</strong> - ${{this.precio}} | Stock: {{this.stock}} | Categoría: {{this.categoria}}</span>
+        <span><strong>{{this.title}}</strong> - ${{this.price}} | Stock: {{this.stock}} | Categoría: {{this.category}}</span>
         <button onclick="eliminarProducto('{{this._id}}')">Eliminar</button>
       </li>
     {{/each}}
@@ -79,7 +79,7 @@
         let productoElemento = document.createElement("li");
         productoElemento.id = `producto-${producto._id}`;
         productoElemento.innerHTML = `
-          <span><strong>${producto.nombre}</strong> - $${producto.precio} | Stock: ${producto.stock} | Categoría: ${producto.categoria}</span>
+          <span><strong>${producto.title}</strong> - $${producto.price} | Stock: ${producto.stock} | Categoría: ${producto.category}</span>
           <button onclick="eliminarProducto('${producto._id}')">Eliminar</button>
         `;
         productosList.appendChild(productoElemento);
@@ -87,24 +87,24 @@
     });
 
     function agregarProducto() {
-      const nombre = document.getElementById("nombre").value.trim();
-      const precio = parseFloat(document.getElementById("precio").value.trim());
+      const title = document.getElementById("title").value.trim();
+      const price = parseFloat(document.getElementById("price").value.trim());
       const stock = parseInt(document.getElementById("stock").value.trim());
-      const categoria = document.getElementById("categoria").value;
+      const category = document.getElementById("category").value;
 
-      if (!nombre || isNaN(precio) || precio <= 0 || isNaN(stock) || stock < 0 || !categoria) {
+      if (!title || isNaN(price) || price <= 0 || isNaN(stock) || stock < 0 || !category) {
         alert("Por favor, ingrese valores válidos en todos los campos.");
         return;
       }
 
-      const nuevoProducto = { nombre, precio, stock, categoria };
+      const nuevoProducto = { title, price, stock, category };
 
       socket.emit("nuevoProducto", nuevoProducto);
 
-      document.getElementById("nombre").value = "";
-      document.getElementById("precio").value = "";
+      document.getElementById("title").value = "";
+      document.getElementById("price").value = "";
       document.getElementById("stock").value = "";
-      document.getElementById("categoria").value = "";
+      document.getElementById("category").value = "";
     }
 
     function eliminarProducto(id) {
