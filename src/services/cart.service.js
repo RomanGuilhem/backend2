@@ -34,8 +34,8 @@ class CartService {
     return cart;
   }
 
-  async finalizePurchase(user) {
-    const result = await cartRepository.finalizePurchase(user);
+  async finalizePurchase(cartId, user) {
+    const result = await cartRepository.finalizePurchase(cartId, user);
     if (result?.error === "empty") {
       throw new Error("El carrito está vacío");
     }

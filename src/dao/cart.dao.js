@@ -78,9 +78,12 @@ class CartDAO {
     return cart.populate("products.product");
   }
 
-async finalizePurchase(user) {
-  const cart = await Cart.findOne({ user: user._id }).populate("products.product");
-  if (!cart || cart.products.length === 0) return { error: "empty" };
+async finalizePurchase(cartId, user) {
+  const cart = await Cart.findById(cartId).populate("products.product");
+
+  if (!cart || cart.products.length === 0) {
+    return { error: "Cart is empty or not found", ticket: null, unprocessedProducts: [] };
+  }
 
   let totalAmount = 0;
   const unprocessedProducts = [];
@@ -90,7 +93,15 @@ async finalizePurchase(user) {
     const product = item.product;
     const quantity = item.quantity;
 
-    if (!product || typeof product.stock !== "number") {
+    if (
+      !product ||
+      !product._id ||
+      typeof product.stock !== "number" ||
+      typeof product.price !== "number" ||
+      typeof quantity !== "number" ||
+      quantity <= 0
+    ) {
+      console.warn("Producto inválido detectado:", { product, quantity });
       if (product?._id) {
         unprocessedProducts.push(product._id.toString());
       }
@@ -109,6 +120,7 @@ async finalizePurchase(user) {
     totalAmount += subtotal;
 
     purchasedProducts.push({
+      productId: product._id,
       title: product.title,
       price: product.price,
       quantity,
@@ -118,17 +130,25 @@ async finalizePurchase(user) {
 
   let ticket = null;
   if (purchasedProducts.length > 0) {
-    ticket = await Ticket.create({
-      amount: totalAmount,
-      purchaser: user.email,
-      products: purchasedProducts,
-    });
+    try {
+      ticket = await Ticket.create({
+        code: crypto.randomUUID(),
+        purchase_datetime: new Date(),
+        amount: totalAmount,
+        purchaser: user.email,
+        products: purchasedProducts,
+      });
+    } catch (error) {
+      console.error("Error al crear el ticket:", error);
+      return { error: "Ticket creation failed", ticket: null, unprocessedProducts };
+    }
+  } else {
+    console.warn("No se pudo procesar ningún producto, no se genera ticket.");
   }
 
   cart.products = cart.products.filter(item =>
     unprocessedProducts.includes(item.product?._id?.toString())
   );
-
   await cart.save();
 
   return {
@@ -136,6 +156,9 @@ async finalizePurchase(user) {
     unprocessedProducts,
   };
 }
+
+
+
 
 }
 

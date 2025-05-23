@@ -25,8 +25,8 @@ class CartRepository {
     return await CartDAO.updateCart(userId, products);
   }
 
-  async finalizePurchase(user) {
-    return await CartDAO.finalizePurchase(user);
+async finalizePurchase(cartId, user) {
+    return await CartDAO.finalizePurchase(cartId, user);
   }
 }
 

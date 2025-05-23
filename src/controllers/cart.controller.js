@@ -118,23 +118,36 @@ export const updateCart = async (req, res) => {
 };
 
 export const finalizePurchase = async (req, res) => {
-  try {
-    const result = await cartService.finalizePurchase(req.user);
+  const cartId = req.params.cid;
+  const user = req.user;
 
-    if (result.error === "empty") {
+  try {
+    const result = await cartService.finalizePurchase(cartId, user);
+
+    if (result.error === "Cart is empty or not found") {
       return res.status(400).json({
         status: "error",
-        message: "El carrito está vacío. No se puede finalizar la compra.",
+        message: "El carrito está vacío o no se encontró. No se puede finalizar la compra.",
+      });
+    }
+
+    if (!result.ticket) {
+      return res.status(400).json({
+        status: "error",
+        message: "No se pudo procesar ningún producto. No se generó ticket.",
+        unprocessedProducts: result.unprocessedProducts || [],
       });
     }
 
     res.status(200).json({
       status: "success",
-      message: "Proceso de compra finalizado",
-      ticket: result.ticket || null,
+      message: "Compra finalizada correctamente.",
+      ticket: result.ticket,
       unprocessedProducts: result.unprocessedProducts || [],
     });
   } catch (err) {
+    console.error("Error en finalizePurchase:", err);
     res.status(500).json({ status: "error", message: err.message });
   }
 };
+
